@@ -1,0 +1,152 @@
+{% extends 'core/base.html' %}
+{% block page_title %}Mill Report{% endblock %}
+
+{% block content %}
+<div class="panel">
+
+  <div class="list-header">
+    <div>
+      <h2 class="list-title">{{ mill.mill_name }}</h2>
+      <p class="muted">Supplier Ledger</p>
+    </div>
+
+    <div class="list-actions">
+      <a href="{% url 'mill_report_excel' mill.id %}" class="btn btn-outline">📥 Export Excel</a>
+      <a href="{% url 'mill_report_pdf' mill.id %}" class="btn btn-outline">🧾 Export PDF</a>
+      <a href="{% url 'add_mill_payment' mill.id %}" class="btn btn-primary">💳 Add Payment</a>
+      <a href="{% url 'mill_list' %}" class="btn btn-outline">⬅ Back</a>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="info-grid">
+    <div class="info-card">
+      <div class="info-label">Opening Balance</div>
+      <div class="info-value">₹ {{ mill.opening_balance }}</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-label">Total Purchase</div>
+      <div class="info-value">₹ {{ total_purchase }}</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-label">Total Paid</div>
+      <div class="info-value">₹ {{ total_paid }}</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-label">Balance (Due)</div>
+      <div class="info-value" style="color:#ef4444;">₹ {{ balance }}</div>
+    </div>
+
+    <!-- ✅ NEW -->
+    <div class="info-card">
+      <div class="info-label">Total Bags Purchased</div>
+      <div class="info-value">{{ grand_total_bags }}</div>
+    </div>
+
+    <!-- ✅ NEW -->
+    <div class="info-card">
+      <div class="info-label">Total KG Purchased</div>
+      <div class="info-value">{{ grand_total_kg }}</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Purchases -->
+    <!-- Purchases -->
+  <h3 class="panel-title">Purchases</h3>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Invoice</th>
+          <th class="right">Bags</th>
+          <th class="right">KG</th>
+          <th class="right">Avg Rate/KG</th>
+          <th class="right">Amount</th>
+          <th class="right">Paid</th>
+          <th class="right">Due</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for p in purchase_rows %}
+        <tr>
+          <td>{{ p.purchase_date }}</td>
+          <td><b>{{ p.invoice_no }}</b></td>
+
+          <td class="right">{{ p.total_bags }}</td>
+          <td class="right">{{ p.total_kg }}</td>
+          <td class="right">₹ {{ p.avg_rate }}</td>
+
+          <td class="right"><b>₹ {{ p.total_amount }}</b></td>
+          <td class="right">₹ {{ p.paid }}</td>
+
+          <td class="right">
+            {% if p.due|floatformat:2 == "0.00" %}
+              <b style="color:#16a34a;">₹ {{ p.due }}</b>
+            {% else %}
+              <b style="color:#ef4444;">₹ {{ p.due }}</b>
+            {% endif %}
+          </td>
+
+          <td>
+            <a href="{% url 'purchase_detail' p.id %}" class="btn btn-outline" style="padding:6px 10px;">
+              👁 View
+            </a>
+            <a href="{% url 'add_purchase_payment' p.id %}" class="btn btn-primary" style="padding:6px 10px;">
+              💳 Pay
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="9" style="text-align:center; padding:20px;">No purchases</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+
+  <hr class="divider">
+
+  <!-- Payments -->
+  <h3 class="panel-title">Payments</h3>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Mode</th>
+          <th>Notes</th>
+          <th class="right">Amount</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for pay in payments %}
+        <tr>
+          <td>{{ pay.payment_date }}</td>
+          <td>{{ pay.payment_mode }}</td>
+          <td>{{ pay.notes|default:"-" }}</td>
+          <td class="right">₹ {{ pay.amount }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4" style="text-align:center; padding:20px;">No payments</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}

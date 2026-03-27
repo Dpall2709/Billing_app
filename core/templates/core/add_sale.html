@@ -1,0 +1,378 @@
+{% extends 'core/base.html' %}
+{% block page_title %}Add Sale{% endblock %}
+
+{% block content %}
+<div class="panel">
+
+  <div class="list-header">
+    <div>
+      <h2 class="list-title">Create Sale (Truck Invoice)</h2>
+      <p class="muted">Broker is internal. Rice invoice is for Customer/Trader. Transport is separate.</p>
+    </div>
+
+    <div class="list-actions">
+      <a href="{% url 'sale_list' %}" class="btn btn-outline">⬅ Back</a>
+    </div>
+  </div>
+
+  <form method="POST" class="form" id="saleForm">
+    {% csrf_token %}
+
+    <!-- CUSTOMER / BROKER -->
+    <h3 class="panel-title">Customer / Broker</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Sale Date *</label>
+        <input type="date" name="sale_date" required value="{{ draft.sale_date|default:'' }}">
+      </div>
+
+      <div class="form-group">
+        <label>Customer / Trader Name *</label>
+        <input type="text" name="customer_name" placeholder="Customer/Trader name" required value="{{ draft.customer_name|default:'' }}">
+      </div>
+
+      <div class="form-group">
+        <label>Customer GST (optional)</label>
+        <input type="text" name="customer_gst" placeholder="GST number" value="{{ draft.customer_gst|default:'' }}">
+      </div>
+
+      <div class="form-group">
+        <label>Broker (internal optional)</label>
+        <select name="broker_id">
+          <option value="">-- Direct Sale (No Broker) --</option>
+          {% for b in brokers %}
+            <option value="{{ b.id }}" {% if draft.broker_id == b.id|stringformat:"s" %}selected{% endif %}>{{ b.broker_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- RICE SELLING -->
+    <h3 class="panel-title">Rice Selling Detail (Customer Invoice)</h3>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Product *</label>
+        <select name="product_id" id="product_id" required>
+          {% for p in products %}
+            <option value="{{ p.id }}" {% if draft.product_id == p.id|stringformat:"s" %}selected{% endif %}>{{ p.rice_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Bag Weight (KG) *</label>
+        <input type="number" name="bag_weight" id="bag_weight" value="{{ draft.bag_weight|default:'50' }}" min="1" required>
+      </div>
+
+      <div class="form-group">
+        <label>Total Bags *</label>
+        <input type="number" name="total_bags" id="total_bags" value="{{ draft.total_bags|default:'0' }}" min="0" required>
+      </div>
+
+      <div class="form-group">
+        <label>Selling Rate / KG *</label>
+        <input type="number" name="rate_per_kg" id="rate_per_kg" step="0.01" min="0" value="{{ draft.rate_per_kg|default:'0' }}" required>
+      </div>
+
+      <div class="form-group">
+        <label>GST %</label>
+        <input type="number" name="gst_percent" id="gst_percent" step="0.01" min="0" value="{{ draft.gst_percent|default:'0' }}">
+      </div>
+
+      <div class="form-group">
+        <label>Advance Received (Rice payment)</label>
+        <input type="number" name="advance_received" id="advance_received" step="0.01" min="0" value="{{ draft.advance_received|default:'0' }}">
+      </div>
+    </div>
+
+    <!-- RICE SUMMARY -->
+    <div class="info-grid" style="margin-top:16px;">
+      <div class="info-card">
+        <div class="info-label">Total Bags</div>
+        <div class="info-value"><b id="sum_bags">0</b></div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-label">Total KG</div>
+        <div class="info-value"><b id="sum_kg">0</b></div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-label">Taxable Amount</div>
+        <div class="info-value"><b>₹ <span id="sum_taxable">0</span></b></div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-label">GST Amount</div>
+        <div class="info-value"><b>₹ <span id="sum_gst">0</span></b></div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-label">Rice Total</div>
+        <div class="info-value"><b>₹ <span id="sum_rice_total">0</span></b></div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-label">Advance Received</div>
+        <div class="info-value"><b>₹ <span id="sum_adv">0</span></b></div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-label">Rice Due</div>
+        <div class="info-value"><b style="color:#ef4444;">₹ <span id="sum_due">0</span></b></div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- TRANSPORT -->
+    <h3 class="panel-title">Transport Details (Separate)</h3>
+    <p class="muted">Transport charge auto calculates from Total KG (Ton). Rice and Transport are separate.</p>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Vehicle Number *</label>
+        <input type="text" name="vehicle_number" required value="{{ draft.vehicle_number|default:'' }}">
+      </div>
+
+      <div class="form-group">
+        <label>Driver Name *</label>
+        <input type="text" name="driver_name" required value="{{ draft.driver_name|default:'' }}">
+      </div>
+
+      <div class="form-group form-full">
+        <label>Transporter Name *</label>
+        <input type="text" name="transporter_name" required value="{{ draft.transporter_name|default:'' }}">
+      </div>
+
+      <div class="form-group">
+        <label>Transport Rate / Ton *</label>
+        <input type="number" name="transport_rate_per_ton" id="transport_rate_per_ton"
+               step="0.01" min="0" value="{{ draft.transport_rate_per_ton|default:'0' }}" required>
+      </div>
+
+      <div class="form-group">
+        <label>Transport Advance Paid by Dealer</label>
+        <input type="number" name="transport_paid_by_dealer" id="transport_paid_by_dealer"
+               step="0.01" min="0" value="{{ draft.transport_paid_by_dealer|default:'0' }}">
+      </div>
+
+      <div class="form-group">
+        <label>Transport Paid by Customer/Broker</label>
+        <input type="number" name="transport_paid_by_customer" id="transport_paid_by_customer"
+               step="0.01" min="0" value="{{ draft.transport_paid_by_customer|default:'0' }}">
+      </div>
+    </div>
+
+    <!-- TRANSPORT SUMMARY -->
+    <div class="info-grid" style="margin-top:16px;">
+      <div class="info-card">
+        <div class="info-label">Total Ton</div>
+        <div class="info-value"><b id="sum_ton">0</b></div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-label">Transport Charge</div>
+        <div class="info-value"><b>₹ <span id="sum_transport">0</span></b></div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-label">Transport Due (Driver)</div>
+        <div class="info-value"><b style="color:#ef4444;">₹ <span id="sum_transport_due">0</span></b></div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- INTERNAL BREAKUP -->
+    <h3 class="panel-title">Internal Stock Breakup (Owner Only)</h3>
+    <p class="muted">Select purchase invoice stock used in this truck. Breakup bags must match Total Bags.</p>
+
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Purchase Stock (Invoice / Mill / Buy Rate)</th>
+            <th class="right">Bag Weight</th>
+            <th class="right">Bags</th>
+            <th class="right">KG</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="breakupBody"></tbody>
+      </table>
+    </div>
+
+    <button type="button" class="btn btn-outline" onclick="addBreakupRow()">➕ Add Row</button>
+    <span id="breakupWarning" style="margin-left:10px; font-weight:700; color:#ef4444;"></span>
+
+    <div class="form-actions" style="margin-top:16px;">
+      <button type="submit" name="step" value="review" class="btn btn-outline">
+        👀 Review (Before Save)
+      </button>
+
+      <button type="submit" name="step" value="save" class="btn btn-primary">
+        ✅ Save Now
+      </button>
+
+      <a href="{% url 'sale_list' %}" class="btn btn-outline">Cancel</a>
+    </div>
+
+  </form>
+</div>
+
+{# ✅ Draft breakup arrays stored safely for JS #}
+{{ draft_purchase_items|json_script:"draftPurchaseItemsJson" }}
+{{ draft_row_bags|json_script:"draftRowBagsJson" }}
+
+<script>
+  const purchaseItems = JSON.parse('{{ purchase_items_json|escapejs }}');
+
+  // ✅ Draft arrays (from session) for restoring breakup rows on Edit
+  const draftPurchaseItems = JSON.parse(document.getElementById("draftPurchaseItemsJson").textContent || "[]");
+  const draftRowBags = JSON.parse(document.getElementById("draftRowBagsJson").textContent || "[]");
+
+  function optionsForSelectedProduct() {
+    const pid = parseInt(document.getElementById("product_id").value || 0);
+    return purchaseItems.filter(x => x.product_id === pid);
+  }
+
+  function addBreakupRow(){
+    const tbody = document.getElementById("breakupBody");
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td>
+        <select name="purchase_item[]" required onchange="onStockChange(this)">
+          <option value="">-- Select Purchase Stock --</option>
+          ${optionsForSelectedProduct().map(p =>
+            `<option value="${p.id}" data-bw="${p.bag_weight}">${p.label}</option>`
+          ).join("")}
+        </select>
+      </td>
+      <td class="right">
+        <input type="number" name="row_bw_display" value="0" readonly style="width:90px;">
+      </td>
+      <td class="right">
+        <input type="number" name="row_bags[]" value="0" min="0" style="width:90px;" oninput="calcAll()">
+      </td>
+      <td class="right">
+        <span class="muted" data-rowkg="0">0</span>
+      </td>
+      <td>
+        <button type="button" class="btn btn-outline" style="padding:6px 10px;"
+          onclick="this.closest('tr').remove(); calcAll();">❌ Remove</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+    calcAll();
+  }
+
+  function onStockChange(sel){
+    const opt = sel.options[sel.selectedIndex];
+    const bw = parseFloat(opt.getAttribute("data-bw") || 0);
+    const tr = sel.closest("tr");
+    tr.querySelector('input[name="row_bw_display"]').value = bw;
+    calcAll();
+  }
+
+  function calcAll(){
+    const bagWeight = parseFloat(document.getElementById("bag_weight").value || 0);
+    const totalBags = parseInt(document.getElementById("total_bags").value || 0);
+
+    const rateKg = parseFloat(document.getElementById("rate_per_kg").value || 0);
+    const gstP = parseFloat(document.getElementById("gst_percent").value || 0);
+    const adv = parseFloat(document.getElementById("advance_received").value || 0);
+
+    const totalKg = totalBags * bagWeight;
+
+    const taxable = totalKg * rateKg;
+    const gstAmt = taxable * gstP / 100;
+    const riceTotal = taxable + gstAmt;
+    const riceDue = riceTotal - adv;
+
+    document.getElementById("sum_bags").innerText = totalBags.toString();
+    document.getElementById("sum_kg").innerText = totalKg.toFixed(2);
+
+    document.getElementById("sum_taxable").innerText = taxable.toFixed(2);
+    document.getElementById("sum_gst").innerText = gstAmt.toFixed(2);
+    document.getElementById("sum_rice_total").innerText = riceTotal.toFixed(2);
+
+    document.getElementById("sum_adv").innerText = adv.toFixed(2);
+    document.getElementById("sum_due").innerText = riceDue.toFixed(2);
+
+    const rateTon = parseFloat(document.getElementById("transport_rate_per_ton").value || 0);
+    const tDealer = parseFloat(document.getElementById("transport_paid_by_dealer").value || 0);
+    const tCustomer = parseFloat(document.getElementById("transport_paid_by_customer").value || 0);
+
+    const totalTon = totalKg / 1000;
+    const transportCharge = totalTon * rateTon;
+    const transportDue = transportCharge - (tDealer + tCustomer);
+
+    document.getElementById("sum_ton").innerText = totalTon.toFixed(3);
+    document.getElementById("sum_transport").innerText = transportCharge.toFixed(2);
+    document.getElementById("sum_transport_due").innerText = transportDue.toFixed(2);
+
+    let breakupBagsSum = 0;
+
+    document.querySelectorAll("#breakupBody tr").forEach(tr => {
+      const bw = parseFloat(tr.querySelector('input[name="row_bw_display"]').value || 0);
+      const bags = parseInt(tr.querySelector('input[name="row_bags[]"]').value || 0);
+      const rowKg = bw * bags;
+
+      breakupBagsSum += bags;
+      tr.querySelector('[data-rowkg]').innerText = rowKg.toFixed(2);
+    });
+
+    const warn = document.getElementById("breakupWarning");
+    if (breakupBagsSum !== totalBags){
+      warn.innerText = `(Breakup bags = ${breakupBagsSum}, Total Bags = ${totalBags})`;
+    } else {
+      warn.innerText = "";
+    }
+  }
+
+  document.getElementById("product_id").addEventListener("change", () => {
+    document.getElementById("breakupBody").innerHTML = "";
+    addBreakupRow();
+  });
+
+  ["bag_weight","total_bags","rate_per_kg","gst_percent","advance_received",
+   "transport_rate_per_ton","transport_paid_by_dealer","transport_paid_by_customer"
+  ].forEach(id => document.getElementById(id).addEventListener("input", calcAll));
+
+  function restoreDraftBreakup(){
+    const tbody = document.getElementById("breakupBody");
+    tbody.innerHTML = "";
+
+    if (!draftPurchaseItems.length || !draftRowBags.length) {
+      addBreakupRow();
+      return;
+    }
+
+    if (draftPurchaseItems.length !== draftRowBags.length) {
+      addBreakupRow();
+      return;
+    }
+
+    for (let i = 0; i < draftPurchaseItems.length; i++) {
+      addBreakupRow();
+      const tr = tbody.lastElementChild;
+      const sel = tr.querySelector('select[name="purchase_item[]"]');
+      const bagsInput = tr.querySelector('input[name="row_bags[]"]');
+
+      sel.value = String(draftPurchaseItems[i] || "");
+      onStockChange(sel);
+
+      bagsInput.value = String(draftRowBags[i] || "0");
+    }
+  }
+
+  restoreDraftBreakup();
+  calcAll();
+</script>
+
+{% endblock %}

@@ -1,0 +1,91 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Rice Billing App</title>
+    <link rel="stylesheet" href="{% static 'core/style.css' %}">
+</head>
+<body class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" >
+    <div class="brand">
+      <div class="brand-logo">🌾 Rice Billing</div>
+    </div>
+
+    <nav class="menu">
+      <a class="menu-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+         href="{% url 'dashboard' %}">🏠 Dashboard</a>
+
+      <!-- ✅ FIXED (single-line if) -->
+      <a class="menu-item {% if request.resolver_match.url_name == 'mill_list' or request.resolver_match.url_name == 'add_mill' or request.resolver_match.url_name == 'mill_report_detail' or request.resolver_match.url_name == 'add_mill_payment' %}active{% endif %}"
+         href="{% url 'mill_list' %}">
+        🏭 Mills / Suppliers
+      </a>
+
+      <a class="menu-item {% if request.resolver_match.url_name == 'product_list' or request.resolver_match.url_name == 'add_product' %}active{% endif %}"
+         href="{% url 'product_list' %}">
+        📦 Products
+      </a>
+
+      <a class="menu-item {% if request.resolver_match.url_name == 'add_purchase' %}active{% endif %}"
+         href="{% url 'add_purchase' %}">🧾 Purchases</a>
+
+      <a class="menu-item {% if request.resolver_match.url_name == 'sale_list' or request.resolver_match.url_name == 'add_sale' or request.resolver_match.url_name == 'sale_detail' %}active{% endif %}"
+         href="{% url 'sale_list' %}">🚚 Sales</a>
+      <a class="menu-item {% if request.resolver_match.url_name == 'broker_list' or request.resolver_match.url_name == 'add_broker' or request.resolver_match.url_name == 'broker_report_detail' %}active{% endif %}"
+        href="{% url 'broker_list' %}">🧑‍💼 Brokers</a>
+
+      <a class="menu-item" href="#">💳 Payments</a>
+      <a class="menu-item" href="#">📊 Reports</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="logout-btn" type="button">Logout</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 class="topbar-title">{% block page_title %}{% endblock %}</h1>
+      </div>
+
+      <div class="topbar-right">
+        <button class="icon-btn" type="button" title="Notifications">🔔</button>
+
+        <div class="user">
+          <div class="user-avatar">DK</div>
+          <div class="user-name">Deepak Kumar</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <main class="content">
+
+      {% if messages %}
+        <div class="msg-wrap">
+          {% for message in messages %}
+            <div class="msg success">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% block content %}{% endblock %}
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      © 2026 Rice Billing App
+    </footer>
+
+  </div>
+
+</body>
+</html>

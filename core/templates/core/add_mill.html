@@ -1,0 +1,65 @@
+{% extends 'core/base.html' %}
+
+{% block page_title %}Mills / Suppliers{% endblock %}
+
+{% block content %}
+
+<div class="panel">
+
+  <div class="list-header">
+    <div>
+      <p class="muted">Enter supplier details (GST optional)</p>
+    </div>
+
+    <div class="list-actions">
+      <a href="{% url 'mill_list' %}" class="btn btn-outline">📋 Mills List</a>
+    </div>
+  </div>
+
+  <form method="POST" class="form">
+    {% csrf_token %}
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Mill Name *</label>
+        <input type="text" name="mill_name" placeholder="e.g., Satya Rice Mill" required>
+      </div>
+
+      <div class="form-group">
+        <label>Owner Name (optional)</label>
+        <input type="text" name="owner_name" placeholder="Owner name">
+      </div>
+
+      <div class="form-group">
+        <label>Phone (optional)</label>
+        <input type="text" name="mobile" placeholder="10-digit mobile">
+      </div>
+
+      <div class="form-group">
+        <label>GST No (optional)</label>
+        <input type="text" name="gst_number" placeholder="e.g., 10ABCDE1234F1Z5">
+      </div>
+
+      <div class="form-group">
+        <label>Opening Balance (optional)</label>
+        <input type="number" step="0.01" name="opening_balance" placeholder="0">
+      </div>
+
+      <div class="form-group form-full">
+        <label>Address (optional)</label>
+        <textarea name="address" rows="3" placeholder="Full address"></textarea>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary" onclick="this.disabled=true; this.innerText='Saving...'; this.form.submit();">
+        Save Mill
+      </button>
+      <a href="{% url 'dashboard' %}" class="btn btn-outline">Cancel</a>
+    </div>
+
+  </form>
+
+</div>
+
+{% endblock %}

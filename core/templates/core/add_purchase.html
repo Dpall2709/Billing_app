@@ -1,0 +1,173 @@
+{% extends 'core/base.html' %}
+{% block page_title %}Add Purchase{% endblock %}
+
+{% block content %}
+<div class="panel">
+
+  <div class="list-header">
+    <div>
+      <h2 class="list-title">Add Purchase</h2>
+      <p class="muted">Rate is per KG (Total = Bags × BagWeight × Rate/KG)</p>
+    </div>
+
+    <div class="list-actions">
+      <a href="{% url 'purchase_list' %}" class="btn btn-outline">📋 Purchase List</a>
+    </div>
+  </div>
+
+  <form method="POST" class="form">
+    {% csrf_token %}
+
+    <!-- Header details -->
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Mill *</label>
+        <select name="mill" required>
+          <option value="">Select Mill</option>
+          {% for mill in mills %}
+            <option value="{{ mill.id }}">{{ mill.mill_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Invoice No *</label>
+        <input type="text" name="invoice_no" placeholder="Invoice number" required>
+      </div>
+
+      <div class="form-group">
+        <label>Purchase Date *</label>
+        <input type="date" name="purchase_date" required>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Items -->
+    <div class="list-header" style="margin-top:0;">
+      <div>
+        <h3 class="panel-title" style="margin:0;">Items</h3>
+        <p class="muted">Default bag weight is 50 KG. Change if needed.</p>
+      </div>
+      <div class="list-actions">
+        <button type="button" class="btn btn-primary" onclick="addItemRow()">➕ Add Item</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="table" id="items_table">
+        <thead>
+          <tr>
+            <th style="min-width:200px;">Product</th>
+            <th>Bag Weight (kg)</th>
+            <th>No. of Bags</th>
+            <th>Rate / KG</th>
+            <th class="right">Line Total</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- Totals -->
+    <div class="total-box">
+      Total Bags: <span id="total_bags">0</span> |
+      Total KG: <span id="total_kg">0</span> |
+      Total Amount: ₹ <span id="total_amount">0</span>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary"
+        onclick="this.disabled=true; this.innerText='Saving...'; this.form.submit();">
+        💾 Save Purchase
+      </button>
+      <a href="{% url 'dashboard' %}" class="btn btn-outline">Cancel</a>
+    </div>
+
+  </form>
+
+</div>
+
+<script>
+function addItemRow() {
+  const tbody = document.querySelector("#items_table tbody");
+  const row = document.createElement("tr");
+
+  row.innerHTML = `
+    <td>
+      <select name="product[]" class="input product" required onchange="updateTotals()">
+        <option value="">Select Product</option>
+        {% for product in products %}
+          <option value="{{ product.id }}">{{ product.rice_name }}</option>
+        {% endfor %}
+      </select>
+    </td>
+
+    <td>
+      <input type="number" name="bag_weight[]" class="input bag_weight"
+        value="50" onchange="updateTotals()" onkeyup="updateTotals()">
+    </td>
+
+    <td>
+      <input type="number" name="bag_count[]" class="input bag_count"
+        value="0" onchange="updateTotals()" onkeyup="updateTotals()">
+    </td>
+
+    <td>
+      <input type="number" step="0.01" name="purchase_price[]" class="input rate"
+        value="0" onchange="updateTotals()" onkeyup="updateTotals()">
+    </td>
+
+    <td class="right">
+      ₹ <span class="line_total">0</span>
+    </td>
+
+    <td>
+      <button type="button" class="btn btn-outline"
+        style="padding:6px 10px; border-color:#ef4444; color:#ef4444;"
+        onclick="removeRow(this)">
+        ✖
+      </button>
+    </td>
+  `;
+
+  tbody.appendChild(row);
+  updateTotals();
+}
+
+function removeRow(btn) {
+  btn.closest("tr").remove();
+  updateTotals();
+}
+
+function updateTotals() {
+  let totalAmount = 0;
+  let totalBags = 0;
+  let totalKg = 0;
+
+  document.querySelectorAll("#items_table tbody tr").forEach(tr => {
+    const bagCount = parseFloat(tr.querySelector(".bag_count")?.value || 0);
+    const bagWeight = parseFloat(tr.querySelector(".bag_weight")?.value || 0);
+    const rateKg = parseFloat(tr.querySelector(".rate")?.value || 0);
+
+    const rowKg = bagCount * bagWeight;
+    const lineTotal = rowKg * rateKg;
+
+    tr.querySelector(".line_total").innerText = lineTotal.toFixed(2);
+
+    totalBags += bagCount;
+    totalKg += rowKg;
+    totalAmount += lineTotal;
+  });
+
+  document.getElementById("total_bags").innerText = totalBags.toFixed(0);
+  document.getElementById("total_kg").innerText = totalKg.toFixed(2);
+  document.getElementById("total_amount").innerText = totalAmount.toFixed(2);
+}
+
+window.onload = function() {
+  addItemRow();
+};
+</script>
+{% endblock %}

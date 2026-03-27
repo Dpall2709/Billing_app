@@ -1,0 +1,53 @@
+{% extends 'core/base.html' %}
+{% block page_title %}Add Mill Payment{% endblock %}
+
+{% block content %}
+<div class="panel">
+
+  <div class="list-header">
+    <div>
+      <h2 class="list-title">Add Payment</h2>
+      <p class="muted">Mill: <b>{{ mill.mill_name }}</b></p>
+    </div>
+    <div class="list-actions">
+      <a href="{% url 'mill_report_detail' mill.id %}" class="btn btn-outline">⬅ Back</a>
+    </div>
+  </div>
+
+  <form method="POST" class="form">
+    {% csrf_token %}
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Amount *</label>
+        <input type="number" step="0.01" name="amount" required>
+      </div>
+
+      <div class="form-group">
+        <label>Payment Mode *</label>
+        <select name="payment_mode" required>
+          <option value="Cash">Cash</option>
+          <option value="UPI">UPI</option>
+          <option value="Bank">Bank</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Payment Date *</label>
+        <input type="date" name="payment_date" required>
+      </div>
+
+      <div class="form-group form-full">
+        <label>Notes</label>
+        <textarea name="notes" rows="3" placeholder="Optional notes"></textarea>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">✅ Save Payment</button>
+      <a href="{% url 'mill_report_detail' mill.id %}" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+
+</div>
+{% endblock %}

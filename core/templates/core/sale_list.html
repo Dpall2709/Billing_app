@@ -1,0 +1,92 @@
+{% extends 'core/base.html' %}
+{% block page_title %}Sales{% endblock %}
+
+{% block content %}
+<div class="panel">
+
+  <div class="list-header">
+    <div>
+      <h2 class="list-title">Sales (Truck Invoices)</h2>
+      <p class="muted">Invoice is generated for customer/trader. Broker is internal optional.</p>
+    </div>
+
+    <div class="list-actions">
+      <form method="GET" class="search-box">
+        <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Search customer name...">
+        <button type="submit" class="btn btn-outline">Search</button>
+      </form>
+
+      <a href="{% url 'add_sale' %}" class="btn btn-primary">➕ Add Sale</a>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Invoice</th>
+          <th>Customer</th>
+          <th>Broker</th>
+          <th class="right">Total</th>
+          <th class="right">Paid</th>
+          <th class="right">Due</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td>{{ r.sale_date }}</td>
+
+          <td>
+            <a class="link-btn" href="{% url 'sale_detail' r.id %}">
+              <b>{{ r.invoice_no }}</b>
+            </a>
+          </td>
+
+          <td>{{ r.customer_name }}</td>
+
+          <td>
+            {% if r.broker %}
+              {{ r.broker.broker_name }}
+            {% else %}
+              -
+            {% endif %}
+          </td>
+
+          <td class="right">Rs. {{ r.total_amount }}</td>
+          <td class="right">Rs. {{ r.paid }}</td>
+          <td class="right"><b>Rs. {{ r.due }}</b></td>
+
+          <td>
+            {% if r.status == "PAID" %}
+              <span class="badge badge-green">PAID</span>
+            {% elif r.status == "PARTIAL" %}
+              <span class="badge badge-orange">PARTIAL</span>
+            {% else %}
+              <span class="badge badge-red">DUE</span>
+            {% endif %}
+          </td>
+
+          <td>
+            <!-- <a href="{% url 'sale_detail' r.id %}" class="btn btn-outline" style="padding:6px 10px;">👁 View</a> -->
+            <a href="{% url 'add_sale_payment' r.id %}" class="btn btn-primary" style="padding:6px 10px;">💳 Pay</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="9" style="text-align:center; padding:20px;">
+            No sales found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+
+    </table>
+  </div>
+
+</div>
+{% endblock %}

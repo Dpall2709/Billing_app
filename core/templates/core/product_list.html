@@ -1,0 +1,72 @@
+{% extends 'core/base.html' %}
+{% block page_title %}Products{% endblock %}
+
+{% block content %}
+<div class="panel">
+
+  <div class="list-header">
+    <div>
+      <h2 class="list-title">Products</h2>
+      <p class="muted">Rice products list</p>
+    </div>
+
+    <div class="list-actions">
+      <form method="GET" class="search-box">
+        <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Search rice name / HSN...">
+        <button type="submit" class="btn btn-outline">Search</button>
+      </form>
+
+      <a href="{% url 'add_product' %}" class="btn btn-primary">➕ Add Product</a>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Rice Name</th>
+          <th>HSN Code</th>
+          <th class="right">GST %</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for p in products %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>
+            <a href="{% url 'product_report' p.id %}" class="link-btn">
+              <b>{{ p.rice_name }}</b>
+            </a>
+          </td>
+          <td>{{ p.hsn_code|default:"-" }}</td>
+          <td class="right">{{ p.gst_percent }}%</td>
+          <td>
+            {% if p.is_active %}
+              ✅ Active
+            {% else %}
+              ❌ Inactive
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'edit_product' p.id %}" class="btn btn-outline" style="padding:6px 10px;">✏ Edit</a>
+            <a href="{% url 'delete_product' p.id %}" class="btn btn-outline"
+               style="padding:6px 10px; border-color:#ef4444; color:#ef4444;">
+              🗑 Delete
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" style="text-align:center; padding:20px;">No products found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}

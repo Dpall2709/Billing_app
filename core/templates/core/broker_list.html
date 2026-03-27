@@ -1,0 +1,60 @@
+{% extends 'core/base.html' %}
+{% block page_title %}Brokers{% endblock %}
+
+{% block content %}
+<div class="panel">
+
+  <div class="list-header">
+    <div>
+      <h2 class="list-title">Brokers</h2>
+      <p class="muted">All brokers you sell through</p>
+    </div>
+
+    <div class="list-actions">
+      <form method="GET" class="search-box">
+        <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Search broker...">
+        <button type="submit" class="btn btn-outline">Search</button>
+      </form>
+
+      <a href="{% url 'add_broker' %}" class="btn btn-primary">➕ Add Broker</a>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Broker Name</th>
+          <th>Mobile</th>
+          <th>GST</th>
+          <th class="right">Opening Balance</th>
+          <th>Report</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for b in brokers %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td><b>{{ b.broker_name }}</b></td>
+          <td>{{ b.mobile|default:"-" }}</td>
+          <td>{{ b.gst_number|default:"-" }}</td>
+          <td class="right">₹ {{ b.opening_balance }}</td>
+          <td>
+            <a href="{% url 'broker_report_detail' b.id %}" class="btn btn-outline" style="padding:6px 10px;">
+              📒 View Report
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" style="text-align:center; padding:20px;">No brokers found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}

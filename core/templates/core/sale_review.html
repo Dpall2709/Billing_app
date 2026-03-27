@@ -1,0 +1,194 @@
+{% extends 'core/base.html' %}
+{% block page_title %}Review Sale{% endblock %}
+
+{% block content %}
+<div class="panel">
+
+  <div class="list-header">
+    <div>
+      <h2 class="list-title">Review Sale (Before Save)</h2>
+      <p class="muted">Check all details. If correct, click <b>Confirm & Save</b>.</p>
+    </div>
+
+    <div class="list-actions">
+      <!-- <button type="button" class="btn btn-outline" onclick="window.print()">🖨 Print</button> -->
+
+      <span class="muted">PDF invoice will be available after saving.</span>
+
+      {# ✅ Session Draft: Edit is just a link #}
+      <a href="{% url 'add_sale' %}" class="btn btn-outline">✏ Edit</a>
+    </div>
+  </div>
+
+  <style>
+    @media print {
+      .list-actions, .btn, .sidebar, nav, header { display:none !important; }
+      .panel { box-shadow:none !important; border:none !important; }
+      body { background:#fff !important; }
+    }
+  </style>
+
+  <!-- ✅ MAIN SUMMARY -->
+  <h3 class="panel-title">Customer / Vehicle</h3>
+  <div class="info-grid">
+    <div class="info-card">
+      <div class="info-label">Sale Date</div>
+      <div class="info-value">{{ sale_date }}</div>
+    </div>
+    <div class="info-card">
+      <div class="info-label">Customer</div>
+      <div class="info-value">{{ customer_name }}</div>
+    </div>
+    <div class="info-card">
+      <div class="info-label">Customer GST</div>
+      <div class="info-value">{{ customer_gst|default:"-" }}</div>
+    </div>
+    <div class="info-card">
+      <div class="info-label">Vehicle No</div>
+      <div class="info-value">{{ vehicle_number }}</div>
+    </div>
+    <div class="info-card">
+      <div class="info-label">Driver</div>
+      <div class="info-value">{{ driver_name }}</div>
+    </div>
+    <div class="info-card">
+      <div class="info-label">Transporter</div>
+      <div class="info-value">{{ transporter_name }}</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ✅ RICE SELLING -->
+  <h3 class="panel-title">Rice Invoice (Selling)</h3>
+  <div class="info-grid">
+    <div class="info-card">
+      <div class="info-label">Total Bags</div>
+      <div class="info-value"><b>{{ total_bags }}</b></div>
+    </div>
+    <div class="info-card">
+      <div class="info-label">Bag Weight</div>
+      <div class="info-value">{{ bag_weight }} KG</div>
+    </div>
+    <div class="info-card">
+      <div class="info-label">Total KG</div>
+      <div class="info-value"><b>{{ total_kg }}</b> KG</div>
+    </div>
+    <div class="info-card">
+      <div class="info-label">Selling Rate / KG</div>
+      <div class="info-value">₹ {{ rate_per_kg }}</div>
+    </div>
+    <div class="info-card">
+      <div class="info-label">Taxable</div>
+      <div class="info-value">₹ {{ taxable_amount }}</div>
+    </div>
+    <div class="info-card">
+      <div class="info-label">GST</div>
+      <div class="info-value">₹ {{ gst_amount }} ({{ gst_percent }}%)</div>
+    </div>
+    <div class="info-card">
+      <div class="info-label">Rice Total</div>
+      <div class="info-value"><b>₹ {{ rice_total }}</b></div>
+    </div>
+    <div class="info-card">
+      <div class="info-label">Advance Received</div>
+      <div class="info-value">₹ {{ advance_received }}</div>
+    </div>
+    <div class="info-card">
+      <div class="info-label">Rice Due</div>
+      <div class="info-value"><b style="color:#ef4444;">₹ {{ rice_due }}</b></div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ✅ TRANSPORT -->
+  <h3 class="panel-title">Transport (Separate)</h3>
+  <div class="info-grid">
+    <div class="info-card">
+      <div class="info-label">Rate / Ton</div>
+      <div class="info-value">₹ {{ transport_rate_per_ton }}</div>
+    </div>
+    <div class="info-card">
+      <div class="info-label">Transport Total</div>
+      <div class="info-value"><b>₹ {{ transport_charge }}</b></div>
+    </div>
+    <div class="info-card">
+      <div class="info-label">Dealer Paid</div>
+      <div class="info-value">₹ {{ transport_paid_by_dealer }}</div>
+    </div>
+    <div class="info-card">
+      <div class="info-label">Customer Paid</div>
+      <div class="info-value">₹ {{ transport_paid_by_customer }}</div>
+    </div>
+    <div class="info-card">
+      <div class="info-label">Transport Due (Driver)</div>
+      <div class="info-value"><b style="color:#ef4444;">₹ {{ transport_due }}</b></div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ✅ INTERNAL BREAKUP -->
+  <h3 class="panel-title">Internal Stock Breakup (Buying Cost)</h3>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Purchase Invoice</th>
+          <th>Mill</th>
+          <th class="right">Bag Wt</th>
+          <th class="right">Bags</th>
+          <th class="right">KG</th>
+          <th class="right">Buy Rate/KG</th>
+          <th class="right">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in breakup_rows %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ r.invoice_no }}</td>
+          <td>{{ r.mill_name }}</td>
+          <td class="right">{{ r.bag_weight }}</td>
+          <td class="right">{{ r.bags }}</td>
+          <td class="right">{{ r.kg }}</td>
+          <td class="right">₹ {{ r.buy_rate }}</td>
+          <td class="right">₹ {{ r.amount }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8" style="text-align:center; padding:16px;">
+            No breakup rows found. (This means your form did not send purchase_item[] / row_bags[])
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="total-box" style="margin-top:14px;">
+    Buy Cost Total: <b>₹ {{ buy_cost_total }}</b>
+    &nbsp; | &nbsp;
+    Profit Estimate (Rice Total - Buy Cost): <b>₹ {{ profit_estimate }}</b>
+    &nbsp; | &nbsp;
+    Grand Total (Rice + Transport): <b>₹ {{ grand_total }}</b>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ✅ CONFIRM SAVE FORM (Session Draft) -->
+  <form method="POST" action="{% url 'add_sale' %}">
+    {% csrf_token %}
+    <input type="hidden" name="step" value="save">
+
+    <div class="form-actions" style="margin-top:16px;">
+      <button type="submit" class="btn btn-primary">✅ Confirm & Save</button>
+      <a href="{% url 'add_sale' %}" class="btn btn-outline">✏ Edit</a>
+    </div>
+  </form>
+
+</div>
+{% endblock %}

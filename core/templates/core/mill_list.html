@@ -1,0 +1,71 @@
+{% extends 'core/base.html' %}
+{% block page_title %}Mills / Suppliers{% endblock %}
+
+{% block content %}
+<div class="panel">
+
+  <div class="list-header">
+    <div>
+      <h2 class="list-title">Mills / Suppliers</h2>
+      <p class="muted">Click mill name to open ledger</p>
+    </div>
+
+    <div class="list-actions">
+      <a href="{% url 'add_mill' %}" class="btn btn-primary">➕ Add Mill</a>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Mill Name</th>
+          <th>Owner</th>
+          <th>Mobile</th>
+          <th>GST</th>
+          <th class="right">Opening Balance</th>
+          <th>Created</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for mill in mills %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+
+          <td>
+            <a href="{% url 'mill_report_detail' mill.id %}" class="link-btn">
+              <b>{{ mill.mill_name }}</b>
+            </a>
+          </td>
+
+          <td>{{ mill.owner_name|default:"-" }}</td>
+          <td>{{ mill.mobile|default:"-" }}</td>
+          <td>{{ mill.gst_number|default:"-" }}</td>
+          <td class="right">₹ {{ mill.opening_balance }}</td>
+          <td>{{ mill.created_at|date:"d M Y" }}</td>
+
+          <td>
+            <a href="{% url 'mill_report_detail' mill.id %}" class="btn btn-outline" style="padding:6px 10px;">
+              📑 Ledger
+            </a>
+            <a href="{% url 'add_mill_payment' mill.id %}" class="btn btn-outline" style="padding:6px 10px;">
+              💳 Pay
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8" style="text-align:center; padding:20px;">
+            No mills found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}

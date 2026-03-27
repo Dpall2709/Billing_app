@@ -1,0 +1,56 @@
+{% extends 'core/base.html' %}
+{% block page_title %}Add Broker{% endblock %}
+
+{% block content %}
+<div class="panel">
+
+  <div class="list-header">
+    <div>
+      <h2 class="list-title">Add Broker</h2>
+      <p class="muted">Broker is internal user (invoice still goes to customer)</p>
+    </div>
+
+    <div class="list-actions">
+      <a href="{% url 'broker_list' %}" class="btn btn-outline">📋 Broker List</a>
+    </div>
+  </div>
+
+  <form method="POST" class="form">
+    {% csrf_token %}
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Broker Name *</label>
+        <input type="text" name="broker_name" required>
+      </div>
+
+      <div class="form-group">
+        <label>Mobile (optional)</label>
+        <input type="text" name="mobile">
+      </div>
+
+      <div class="form-group">
+        <label>GST (optional)</label>
+        <input type="text" name="gst_number">
+      </div>
+
+      <div class="form-group">
+        <label>Opening Balance</label>
+        <input type="number" step="0.01" name="opening_balance" value="0">
+      </div>
+
+      <div class="form-group form-full">
+        <label>Address</label>
+        <textarea name="address" rows="3"></textarea>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Save Broker</button>
+      <a href="{% url 'broker_list' %}" class="btn btn-outline">Cancel</a>
+    </div>
+
+  </form>
+
+</div>
+{% endblock %}

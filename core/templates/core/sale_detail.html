@@ -1,0 +1,222 @@
+{% extends 'core/base.html' %}
+{% block page_title %}Sale Detail{% endblock %}
+
+{% block content %}
+<div class="panel">
+
+  <div class="list-header">
+    <div>
+      <h2 class="list-title">Sale Invoice</h2>
+      <p class="muted">Invoice: <b>{{ sale.invoice_no }}</b></p>
+    </div>
+
+    <div class="list-actions">
+    <a href="{% url 'sale_invoice_pdf' sale.id %}" class="btn btn-primary">⬇ Download PDF Invoice</a>
+    <a href="{% url 'add_sale_payment' sale.id %}" class="btn btn-outline">💳 Add Rice Payment</a>
+    <a href="{% url 'sale_list' %}" class="btn btn-outline">⬅ Back</a>
+  </div>
+  </div>
+
+  <!-- MAIN INFO -->
+  <div class="info-grid">
+    <div class="info-card">
+      <div class="info-label">Customer / Trader</div>
+      <div class="info-value">{{ sale.customer_name }}</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-label">Broker (internal)</div>
+      <div class="info-value">
+        {% if sale.broker %}{{ sale.broker.broker_name }}{% else %}-{% endif %}
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-label">Sale Date</div>
+      <div class="info-value">{{ sale.sale_date }}</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-label">Vehicle</div>
+      <div class="info-value">{{ sale.vehicle_number }}</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-label">Driver</div>
+      <div class="info-value">{{ sale.driver_name }}</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-label">Transporter</div>
+      <div class="info-value">{{ sale.transporter_name }}</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ✅ RICE SELLING (CUSTOMER INVOICE) -->
+  <h3 class="panel-title">Rice Invoice (Selling - Customer/Trader)</h3>
+
+  <div class="info-grid">
+    <div class="info-card">
+      <div class="info-label">Total Bags</div>
+      <div class="info-value"><b>{{ total_bags }}</b></div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-label">Total KG</div>
+      <div class="info-value"><b>{{ total_kg }}</b> KG</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-label">Selling Rate / KG</div>
+      <div class="info-value"><b>₹ {{ selling_rate_per_kg }}</b></div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-label">Taxable Amount</div>
+      <div class="info-value">₹ {{ sale.taxable_amount }}</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-label">GST</div>
+      <div class="info-value">₹ {{ sale.gst_amount }} ({{ sale.gst_percent }}%)</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-label">Rice Total (Selling)</div>
+      <div class="info-value"><b>₹ {{ rice_total }}</b></div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-label">Advance Received</div>
+      <div class="info-value">₹ {{ sale.advance_received }}</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-label">Other Payments Received</div>
+      <div class="info-value">₹ {{ paid_extra }}</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-label">Total Received</div>
+      <div class="info-value"><b>₹ {{ rice_received_total }}</b></div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-label">Rice Due</div>
+      <div class="info-value"><b style="color:#ef4444;">₹ {{ rice_due }}</b></div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ✅ TRANSPORT (SEPARATE) -->
+  <h3 class="panel-title">Transport (Separate - Driver Payment)</h3>
+
+  <div class="info-grid">
+    <div class="info-card">
+      <div class="info-label">Transport Total</div>
+      <div class="info-value">₹ {{ sale.transport_charge }}</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-label">Dealer Paid (Advance)</div>
+      <div class="info-value">₹ {{ sale.transport_paid_by_dealer }}</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-label">Customer/Broker Paid</div>
+      <div class="info-value">₹ {{ sale.transport_paid_by_customer }}</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-label">Transport Due (Driver)</div>
+      <div class="info-value"><b style="color:#ef4444;">₹ {{ transport_due }}</b></div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ✅ INTERNAL BREAKUP (BUYING PRICE) -->
+  <h3 class="panel-title">Internal Mill Breakup (Buying Cost - Owner Only)</h3>
+  <p class="muted">This section shows your BUYING price (from purchase stock). Not shown to customer.</p>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Mill</th>
+          <th>Product</th>
+          <th class="right">Bag Weight</th>
+          <th class="right">Bags</th>
+          <th class="right">KG</th>
+          <th class="right">Buy Rate/KG</th>
+          <th class="right">Buy Amount</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for it in items %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td><b>{{ it.mill.mill_name }}</b></td>
+          <td>{{ it.product.rice_name }}</td>
+          <td class="right">{{ it.bag_weight }}</td>
+          <td class="right">{{ it.bag_count }}</td>
+          <td class="right">{{ it.total_weight }}</td>
+          <td class="right">₹ {{ it.rate_per_kg }}</td>
+          <td class="right">₹ {{ it.amount }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8" style="text-align:center; padding:20px;">No internal breakup items found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="total-box" style="margin-top:14px;">
+    Internal Buy Cost Total: <b>₹ {{ buy_cost_total }}</b>
+    &nbsp; | &nbsp;
+    Profit Estimate (Rice Selling - Buy Cost): <b>₹ {{ profit_estimate }}</b>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ✅ RICE PAYMENTS TABLE -->
+  <h3 class="panel-title">Rice Payments Received</h3>
+  <p class="muted">These payments affect Rice Due only (not Transport).</p>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Mode</th>
+          <th>Notes</th>
+          <th class="right">Amount</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for p in payments %}
+        <tr>
+          <td>{{ p.payment_date }}</td>
+          <td>{{ p.payment_mode }}</td>
+          <td>{{ p.notes|default:"-" }}</td>
+          <td class="right">₹ {{ p.amount }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4" style="text-align:center; padding:20px;">No payments yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}
